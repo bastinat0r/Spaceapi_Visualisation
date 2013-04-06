@@ -1,0 +1,75 @@
+extends layout
+
+block content
+	h1 #{title}
+	script(src="/static/javascripts/d3/d3.js")
+	
+	span(id="placeholder")
+	script(type="text/javascript")
+		var data = {};
+		var x = function() {return 0};
+		d3.json("/space/_design/space/_view/open_close", function(err, res) {
+			if(err)
+				console.log(err);
+			else {
+				data = res.rows;
+				drawStuff(res.rows.sort(function(a,b) {
+					return a.value.lastchange - b.value.lastchange;
+				}));
+			}
+		});
+
+		function drawStuff(data) {
+			x = d3.time.scale()
+				.domain([d3.min(data, function(d) {
+					return new Date(d.value.lastchange);
+				}), new Date()])
+				.range([0,window.innerWidth - 200]);
+			var chart = d3.select("span#placeholder").append("svg")
+				.attr("height", 50)
+				.attr("width", window.innerWidth - 200)
+			chart.selectAll("rect")
+				.data(data)
+				.enter().append("rect")
+				.attr("y", 20)
+				.attr("x", function(d, i) {
+					return x(new Date(d.value.lastchange))
+				})
+				.attr("width", function(d, i) {
+					if(i+1 < data.length) {
+						return x(data[i+1].value.lastchange) - x(d.value.lastchange) + 1
+					}
+					return x(new Date()) - x(d.value.lastchange) + 1;
+				})
+				.attr("height", 30)
+				.attr("style", function(d) {
+					console.log(d);
+					if(d.key) {
+						return "fill : #0c0";
+					}
+					return "fill : #b00";
+				})
+			
+			chart.selectAll("line").data(x.ticks(3))
+				.enter().append("line")
+				.attr("x1", x)
+				.attr("x2", x)
+				.attr("y1", 14)
+				.attr("y2", 50)
+				.attr("style", "stroke: #ccc");
+
+			chart.selectAll(".rule")
+				.data(x.ticks(3))
+				.enter().append("text")
+				.attr("class", "rule")
+				.attr("x", x)
+				.attr("y", 12)
+				.attr("text-anchor", "middle")
+				.text(function(d) {
+					return (new Date(d)).toLocaleString();
+				});
+			
+		}
+
+
+
