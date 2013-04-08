@@ -3,30 +3,60 @@ extends layout
 block content
 	h1 #{title}
 	script(src="/static/javascripts/d3/d3.js")
-	
-	span(id="placeholder")
+
+	h3 week
+	span(id="placeholder_week")
+
+	h3 month
+	span(id="placeholder_month")
+
+	h3 year
+	span(id="placeholder_year")
 	script(type="text/javascript")
 		var data = {};
-		var x = function() {return 0};
-		d3.json("/space/_design/space/_view/open_close", function(err, res) {
+		d3.json("/space/_design/space/_view/week", function(err, res) {
 			if(err)
 				console.log(err);
 			else {
 				data = res.rows;
 				drawStuff(res.rows.sort(function(a,b) {
 					return a.value.lastchange - b.value.lastchange;
-				}));
+				}), "placeholder_week");
+			}
+		});
+		
+		var data = {};
+		d3.json("/space/_design/space/_view/month", function(err, res) {
+			if(err)
+				console.log(err);
+			else {
+				data = res.rows;
+				drawStuff(res.rows.sort(function(a,b) {
+					return a.value.lastchange - b.value.lastchange;
+				}), "placeholder_month");
+			}
+		});
+		
+		var data = {};
+		d3.json("/space/_design/space/_view/year", function(err, res) {
+			if(err)
+				console.log(err);
+			else {
+				data = res.rows;
+				drawStuff(res.rows.sort(function(a,b) {
+					return a.value.lastchange - b.value.lastchange;
+				}), "placeholder_year");
 			}
 		});
 
-		function drawStuff(data) {
-			x = d3.time.scale()
+		function drawStuff(data, placeholder) {
+			var x = d3.time.scale()
 				.domain([d3.min(data, function(d) {
 					return new Date(d.value.lastchange);
 				}), new Date()])
 				.range([0,window.innerWidth - 200]);
-			var chart = d3.select("span#placeholder").append("svg")
-				.attr("height", 50)
+			var chart = d3.select("span#" + placeholder).append("svg")
+				.attr("height", 70)
 				.attr("width", window.innerWidth - 200)
 			chart.selectAll("rect")
 				.data(data)
@@ -50,7 +80,7 @@ block content
 					return "fill : #b00";
 				})
 			
-			chart.selectAll("line").data(x.ticks(3))
+			chart.selectAll("line").data(x.ticks(6))
 				.enter().append("line")
 				.attr("x1", x)
 				.attr("x2", x)
@@ -59,7 +89,7 @@ block content
 				.attr("style", "stroke: #ccc");
 
 			chart.selectAll(".rule")
-				.data(x.ticks(3))
+				.data(x.ticks(6))
 				.enter().append("text")
 				.attr("class", "rule")
 				.attr("x", x)
@@ -68,7 +98,59 @@ block content
 				.text(function(d) {
 					return (new Date(d)).toLocaleString();
 				});
-			
+
+			var open_time = 0;
+			var closed_time = 0;
+			for(var i = 0; i < (data.length - 1); i++) {
+				timediff = data[i+1].value.lastchange - data[i].value.lastchange;
+				if(data[i].key)
+					open_time += timediff;
+				else
+					closed_time += timediff;
+			}
+			if(data[data.length -1].key) {
+				open_time += (new Date()).getTime()- data[data.length - 1].value.lastchange;
+			} else {
+				closed_time +=  (new Date()).getTime() - data[data.length - 1].value.lastchange;
+			}
+
+			svg = d3.select("span#" + placeholder)
+				.append("svg")
+				.attr("width", 300)
+				.attr("height", 150)
+			.append("g")
+				.attr("transform", "translate(150, 150)");  
+
+			var pie = d3.layout.pie()
+				.sort(null)
+				.value(function(d) { return d.time; })
+				.startAngle(-1 * Math.PI / 2)
+				.endAngle(Math.PI / 2);
+
+			var arc = d3.svg.arc()
+				.outerRadius(150 - 5)
+				.innerRadius(150 - 55)
+				
+			var g = svg.selectAll(".arc")
+				.data(pie([{open: true, time: open_time}, {open: false, time: closed_time}]))
+				.enter().append("g")
+				.attr("class", "arc");
+
+			g.append("path")
+				.attr("d", arc)
+				.style("fill", function(d) {
+					console.log(d);
+					if(d.data.open)
+						return "#0c0"
+					return "#b00"
+				});
+
+			g.append("text")
+				.attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+				.attr("dy", ".35em")
+				.style("text-anchor", "middle")
+				.text(function(d) { return (d.data.open ? "open " : "closed ") + (d.data.time / (open_time + closed_time)).toFixed(2) + "%";})
+
 		}
 
 
