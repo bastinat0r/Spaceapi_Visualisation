@@ -14,19 +14,19 @@ block content
 	span(id="placeholder_year")
 	script(type="text/javascript")
 		var data = {};
-		d3.json("/space/_design/space/_view/week", function(err, res) {
+		d3.json("/space/_design/space/_view/all?startkey="+((new Date()).getTime() - 7 * 24 * 60 * 60 * 1000) + "&endkey="+ (new Date()).getTime(), function(err, res) {
 			if(err)
 				console.log(err);
 			else {
 				data = res.rows;
+				console.log(data);
 				drawStuff(res.rows.sort(function(a,b) {
 					return a.value.lastchange - b.value.lastchange;
 				}), "placeholder_week");
 			}
 		});
 		
-		var data = {};
-		d3.json("/space/_design/space/_view/month", function(err, res) {
+		d3.json("/space/_design/space/_view/all?startkey="+((new Date()).getTime() - 30 * 24 * 60 * 60 * 1000) + "&endkey="+ (new Date()).getTime(), function(err, res) {
 			if(err)
 				console.log(err);
 			else {
@@ -37,8 +37,7 @@ block content
 			}
 		});
 		
-		var data = {};
-		d3.json("/space/_design/space/_view/year", function(err, res) {
+		d3.json("/space/_design/space/_view/all?startkey="+((new Date()).getTime() - 356 * 24 * 60 * 60 * 1000) + "&endkey="+ (new Date()).getTime(), function(err, res) {
 			if(err)
 				console.log(err);
 			else {
@@ -73,8 +72,7 @@ block content
 				})
 				.attr("height", 30)
 				.attr("style", function(d) {
-					console.log(d);
-					if(d.key) {
+					if(d.value.open) {
 						return "fill : #0c0";
 					}
 					return "fill : #b00";
@@ -96,19 +94,19 @@ block content
 				.attr("y", 12)
 				.attr("text-anchor", "middle")
 				.text(function(d) {
-					return (new Date(d)).toLocaleString();
+					return (new Date(d)).toLocaleDateString();
 				});
 
 			var open_time = 0;
 			var closed_time = 0;
 			for(var i = 0; i < (data.length - 1); i++) {
 				timediff = data[i+1].value.lastchange - data[i].value.lastchange;
-				if(data[i].key)
+				if(data[i].value.open)
 					open_time += timediff;
 				else
 					closed_time += timediff;
 			}
-			if(data[data.length -1].key) {
+			if(data[data.length -1].value.open) {
 				open_time += (new Date()).getTime()- data[data.length - 1].value.lastchange;
 			} else {
 				closed_time +=  (new Date()).getTime() - data[data.length - 1].value.lastchange;
@@ -139,7 +137,6 @@ block content
 			g.append("path")
 				.attr("d", arc)
 				.style("fill", function(d) {
-					console.log(d);
 					if(d.data.open)
 						return "#0c0"
 					return "#b00"

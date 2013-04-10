@@ -35,7 +35,7 @@ app.get(/^\/space.*/, function(req, res) {
 		host : "localhost",
 		port : 5984,
 		method : "GET",
-		path : req.path,
+		path : req.originalUrl,
 	};
 	var dbReq = http.request(opts, function(dbRes) {
 		res.writeHead(dbRes.statusCode, dbRes.headers);

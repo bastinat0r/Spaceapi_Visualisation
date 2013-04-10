@@ -18,7 +18,7 @@ http.get('http://spaceapi.n39.eu/json', function(res) {
 		util.puts("Since " + (new Date(data.lastchange)).toLocaleString());
 		data._id = hash(data.lastchange);
 		util.puts(JSON.stringify(data));
-		couch.update(data, "/space/", function() {
+		couch.update(data, "/space/", function(res) {
 			res.on('data', function(dat) {
 				util.puts(dat);
 			});
