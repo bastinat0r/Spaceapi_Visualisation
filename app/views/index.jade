@@ -22,7 +22,7 @@ block content
 				console.log(data);
 				drawStuff(res.rows.sort(function(a,b) {
 					return a.value.lastchange - b.value.lastchange;
-				}), "placeholder_week");
+				}), "placeholder_week", 7);
 			}
 		});
 		
@@ -33,7 +33,7 @@ block content
 				data = res.rows;
 				drawStuff(res.rows.sort(function(a,b) {
 					return a.value.lastchange - b.value.lastchange;
-				}), "placeholder_month");
+				}), "placeholder_month", 10);
 			}
 		});
 		
@@ -44,11 +44,11 @@ block content
 				data = res.rows;
 				drawStuff(res.rows.sort(function(a,b) {
 					return a.value.lastchange - b.value.lastchange;
-				}), "placeholder_year");
+				}), "placeholder_year", 10);
 			}
 		});
 
-		function drawStuff(data, placeholder) {
+		function drawStuff(data, placeholder, num_ticks) {
 			var x = d3.time.scale()
 				.domain([d3.min(data, function(d) {
 					return new Date(d.value.lastchange);
@@ -78,7 +78,7 @@ block content
 					return "fill : #b00";
 				})
 			
-			chart.selectAll("line").data(x.ticks(6))
+			chart.selectAll("line").data(x.ticks(num_ticks))
 				.enter().append("line")
 				.attr("x1", x)
 				.attr("x2", x)
@@ -87,7 +87,7 @@ block content
 				.attr("style", "stroke: #ccc");
 
 			chart.selectAll(".rule")
-				.data(x.ticks(6))
+				.data(x.ticks(num_ticks))
 				.enter().append("text")
 				.attr("class", "rule")
 				.attr("x", x)
