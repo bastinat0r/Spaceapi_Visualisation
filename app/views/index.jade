@@ -1,17 +1,25 @@
 extends layout
 
 block content
-	h1 #{title}
 	script(src="/static/javascripts/d3/d3.js")
+	div(class="row-fluid")
+		div(class="hero-unit")
+			h3 week
+			small
+				span(id="placeholder_week")
 
-	h3 week
-	span(id="placeholder_week")
+	div(class="row-fluid")
+		div(class="hero-unit")
+			h3 month
+			small
+				span(id="placeholder_month")
 
-	h3 month
-	span(id="placeholder_month")
+	div(class="row-fluid")
+		div(class="hero-unit")
+			h3 year
+			small
+				span(id="placeholder_year")
 
-	h3 year
-	span(id="placeholder_year")
 	script(type="text/javascript")
 		var data = {};
 		d3.json("/space/_design/space/_view/all?startkey="+((new Date()).getTime() - 7 * 24 * 60 * 60 * 1000) + "&endkey="+ (new Date()).getTime(), function(err, res) {
@@ -33,7 +41,7 @@ block content
 				data = res.rows;
 				drawStuff(res.rows.sort(function(a,b) {
 					return a.value.lastchange - b.value.lastchange;
-				}), "placeholder_month", 10);
+				}), "placeholder_month", 7);
 			}
 		});
 		
@@ -44,7 +52,7 @@ block content
 				data = res.rows;
 				drawStuff(res.rows.sort(function(a,b) {
 					return a.value.lastchange - b.value.lastchange;
-				}), "placeholder_year", 10);
+				}), "placeholder_year", 7);
 			}
 		});
 
