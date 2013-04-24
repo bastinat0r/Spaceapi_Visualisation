@@ -146,7 +146,7 @@ block content
 				.attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
 				.attr("dy", ".35em")
 				.style("text-anchor", "middle")
-				.text(function(d) { return (d.data.open ? "open " : "closed ") + (d.data.time / (open_time + closed_time)).toFixed(2) + "%";})
+				.text(function(d) { return (d.data.open ? "open " : "closed ") + (100 * d.data.time / (open_time + closed_time)).toFixed(2) + "%";})
 
 		}
 
