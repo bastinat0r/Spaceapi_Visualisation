@@ -212,7 +212,10 @@ block content
 					console.log(d);
 					return 200 * d.open / (d.open + d.close);
 				})
-				.attr("style", "fill: #0c0");
+				.attr("style", "fill: #0c0")
+				.append("svg:title").text(function(d) {
+					return (d.open / (d.open + d.close) * 100).toFixed(2) + "%";
+				});
 				
 			chart.selectAll("text")
 				.data(getHours(data))
