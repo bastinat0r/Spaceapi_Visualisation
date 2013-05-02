@@ -3,20 +3,20 @@ extends layout
 block content
 	script(src="/static/javascripts/d3/d3.js")
 	div(class="row-fluid")
+		h3 week
 		div(class="hero-unit")
-			h3 week
 			small
 				span(id="placeholder_week")
 
 	div(class="row-fluid")
+		h3 month
 		div(class="hero-unit")
-			h3 month
 			small
 				span(id="placeholder_month")
 
 	div(class="row-fluid")
+		h3 year
 		div(class="hero-unit")
-			h3 year
 			small
 				span(id="placeholder_year")
 
@@ -74,9 +74,9 @@ block content
 				})
 				.attr("width", function(d, i) {
 					if(i+1 < data.length) {
-						return x(data[i+1].value.lastchange) - x(d.value.lastchange) + 1
+						return x(data[i+1].value.lastchange) - x(d.value.lastchange)
 					}
-					return x(new Date()) - x(d.value.lastchange) + 1;
+					return x(new Date()) - x(d.value.lastchange);
 				})
 				.attr("height", 30)
 				.attr("style", function(d) {
@@ -155,7 +155,6 @@ block content
 				.attr("dy", ".35em")
 				.style("text-anchor", "middle")
 				.text(function(d) { return (d.data.open ? "open " : "closed ") + (100 * d.data.time / (open_time + closed_time)).toFixed(2) + "%";})
-
 		}
 
 
