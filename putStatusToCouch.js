@@ -70,4 +70,4 @@ function hash(str) {
 };
 
 putToCouch();
-//timers.setInterval(putToCouch, 1000 * 60 * 10);
+timers.setInterval(putToCouch, 1000 * 60 * 10);
