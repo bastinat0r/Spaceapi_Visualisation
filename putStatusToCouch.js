@@ -1,35 +1,67 @@
 var http = require('http');
+var https = require('https');
 var util = require('util');
 var crypto = require('crypto');
 var couch = require('./couch.js');
 var timers = require('timers');
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+
+function getHttpAndHttps(url, cb) {
+	if(/^https/.test(url)) {
+		https.get(url, cb).on('error', function(e) {
+			util.puts(JSON.stringify(e));
+			util.puts(url);
+		});
+	} else {
+		http.get(url, cb).on('error', function(e) {
+			util.puts(JSON.stringify(e));
+			util.puts(url);
+		});
+	}
+}
+
 function putToCouch() {
-	http.get('http://spaceapi.n39.eu/json', function(res) {
+	var spaces = http.get('http://localhost:5984/spaces/_design/all/_view/json', function(res) {
 		var data = "";
-		res.on('data', function(chunk) {
+		res.on('data', function(chunk){
 			data = data + chunk;
 		});
 		res.on('end', function() {
-			data = JSON.parse(data);
-			if(data.open) {
-				util.puts("Netz39 is open");
-			} else {
-				util.puts("Netz39 is closed");
-			}
-			util.puts("Since " + (new Date(data.lastchange)).toLocaleString());
-			data._id = hash(data.lastchange);
-			util.puts(JSON.stringify(data));
-			couch.update(data, "/space/", function(res) {
-				res.on('data', function(dat) {
-					util.puts(dat);
-				});
-			});
+			spaces = JSON.parse(data).rows;
+			util.puts(JSON.stringify(spaces));
+			getListItems(spaces);
 		});
-	}).on('error', function(err) {
-		util.puts(err);
 	});
 }
+
+function getListItems(spaces) {
+	var current = spaces.pop();
+	
+	if(!current)
+		return;
+
+	getHttpAndHttps(current.key, function(res) {
+		data = "";
+		res.on('data', function(chunk){
+			data = data + chunk;
+		});
+		res.on('end', function() {
+			try {
+				data = JSON.parse(data);
+				couch.update(data, "/" + current.id + "/", function(res) {
+					res.on('data', util.puts);
+					res.on('end', function() {
+						getListItems(spaces);
+					});
+				});
+			} catch (e) {
+				util.puts(current.key);
+				getListItems(spaces);
+			}
+		});
+	});
+};
 
 function hash(str) {
 	var hash = crypto.createHash('sha256');
@@ -38,4 +70,4 @@ function hash(str) {
 };
 
 putToCouch();
-timers.setInterval(putToCouch, 1000 * 60 * 10);
+//timers.setInterval(putToCouch, 1000 * 60 * 10);

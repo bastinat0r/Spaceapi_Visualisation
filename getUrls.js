@@ -19,7 +19,7 @@ http.get('http://openspace.slopjong.de/directory.json', function(res) {
 				url : data[s]
 			});
 		};
-		couch.updateList(list, '/spaces/', function() {
+		updateList(list, '/spaces/', function() {
 			util.puts('done.');
 		});
 	});
@@ -27,3 +27,20 @@ http.get('http://openspace.slopjong.de/directory.json', function(res) {
 	util.puts(JSON.stringify(e));
 });
 
+function updateList(list, dbpath, cb) {
+	if(list[0]) {
+		current = list.pop();
+		couch.createDB("/" + current._id, function(res) {
+			util.puts(res.statusCode);
+			res.on('data', util.puts);
+		});
+		couch.update(current, dbpath, function(res) {
+			res.on('data', util.puts);
+			res.on('end', function() {
+				updateList(list, dbpath, cb);
+			});
+		});
+	} else {
+		cb();
+	}
+}

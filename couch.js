@@ -55,5 +55,12 @@ function updateList(list, dbpath, cb) {
 	}
 }
 
+function createDB(dbpath, cb) {
+	putOpts.path = dbpath;
+	var req = http.request(putOpts, cb);
+	req.end();
+}
+
 module.exports.update = update;
 module.exports.updateList = updateList;
+module.exports.createDB = createDB;
