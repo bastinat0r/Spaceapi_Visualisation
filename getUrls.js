@@ -33,6 +33,9 @@ function updateList(list, dbpath, cb) {
 		couch.createDB("/" + current._id, function(res) {
 			util.puts(res.statusCode);
 			res.on('data', util.puts);
+			couch.update(JSON.parse("{\"_id\":\"_design/space\",\"language\":\"javascript\",\"views\":{\"all\":{\"map\":\"function(doc) { emit(doc.lastchange, {open : doc.open, lastchange : doc.lastchange});}\"}}}"), "/"+ current._id + "/", function(res) {
+				res.on('data', util.puts);
+			});
 		});
 		couch.update(current, dbpath, function(res) {
 			res.on('data', util.puts);

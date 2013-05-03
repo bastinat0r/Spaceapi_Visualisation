@@ -30,13 +30,14 @@ if ('development' == app.get('env')) {
 }
 
 app.get('/', routes.index);
-app.get(/^\/space.*/, function(req, res) {
+app.get(/_design/, function(req, res) {
 	var opts = {
 		host : "localhost",
 		port : 5984,
 		method : "GET",
 		path : req.originalUrl,
 	};
+	util.puts(opts.path);
 	var dbReq = http.request(opts, function(dbRes) {
 		res.writeHead(dbRes.statusCode, dbRes.headers);
 		dbRes.on('data', function(chunk) {
