@@ -2,6 +2,10 @@ extends layout
 
 block content
 	script(src="/static/javascripts/d3/d3.js")
+	
+	div(class="row-fluid")
+		select
+
 	div(class="row-fluid")
 		h3 week
 		div(class="hero-unit")
@@ -21,42 +25,72 @@ block content
 				span(id="placeholder_year")
 
 	script(type="text/javascript")
-		var data = {};
-		d3.json("/space/_design/space/_view/all?startkey="+((new Date()).getTime() - 7 * 24 * 60 * 60 * 1000) + "&endkey="+ (new Date()).getTime(), function(err, res) {
+		drawAll("netz39");
+		d3.json("/spaces/_design/all/_view/json", function(err, res) {
 			if(err)
 				console.log(err);
 			else {
 				data = res.rows;
 				console.log(data);
-				drawStuff(res.rows.sort(function(a,b) {
-					return a.value.lastchange - b.value.lastchange;
-				}), "placeholder_week", 7);
+				var sel = d3.select("select");
+				sel.selectAll("option")
+					.data(data)
+					.enter().append("option")
+					.attr("value", function(d) {
+						return d.value._id;
+					})
+					.text(function(d) {
+						return d.value.name;
+					});
+				sel.on('change', function() {
+					var v = sel.node().options[sel.node().options.selectedIndex].value;
+					console.log(v);
+					drawAll(v);
+				});
 			}
 		});
-		
-		d3.json("/space/_design/space/_view/all?startkey="+((new Date()).getTime() - 30 * 24 * 60 * 60 * 1000) + "&endkey="+ (new Date()).getTime(), function(err, res) {
-			if(err)
-				console.log(err);
-			else {
-				data = res.rows;
-				drawStuff(res.rows.sort(function(a,b) {
-					return a.value.lastchange - b.value.lastchange;
-				}), "placeholder_month", 7);
-			}
-		});
-		
-		d3.json("/space/_design/space/_view/all?startkey="+((new Date()).getTime() - 356 * 24 * 60 * 60 * 1000) + "&endkey="+ (new Date()).getTime(), function(err, res) {
-			if(err)
-				console.log(err);
-			else {
-				data = res.rows;
-				drawStuff(res.rows.sort(function(a,b) {
-					return a.value.lastchange - b.value.lastchange;
-				}), "placeholder_year", 7);
-			}
-		});
+			
+		function drawAll(spacename) {
+			d3.selectAll("svg").remove();
+			d3.json("/"+spacename+"/_design/space/_view/all?startkey="+((new Date()).getTime() - 7 * 24 * 60 * 60 * 1000)/1000 + "&endkey="+ (new Date()).getTime()/1000 ,function(err, res) {
+				if(err)
+					console.log(err);
+				else {
+					data = res.rows;
+					if(data[0])
+						drawStuff(res.rows.sort(function(a,b) {
+							return a.value.lastchange*1000 - b.value.lastchange*1000;
+						}), "placeholder_week", 7);
+				}
+			});
+			d3.json("/"+spacename+"/_design/space/_view/all?startkey="+((new Date()).getTime() - 30 * 24 * 60 * 60 * 1000)/1000 + "&endkey="+ (new Date()).getTime()/1000, function(err, res) {
+				if(err)
+					console.log(err);
+				else {
+					data = res.rows;
+					if(data[0])
+						drawStuff(res.rows.sort(function(a,b) {
+							return a.value.lastchange*1000 - b.value.lastchange*1000;
+						}), "placeholder_month", 7);
+				}
+			});
+			
+			d3.json("/"+spacename+"/_design/space/_view/all?startkey="+((new Date()).getTime() - 356 * 24 * 60 * 60 * 1000)/1000 + "&endkey="+ (new Date()).getTime()/1000, function(err, res) {
+				if(err)
+					console.log(err);
+				else {
+					data = res.rows;
+					if(data[0]) 
+						drawStuff(res.rows.sort(function(a,b) {
+							return a.value.lastchange*1000 - b.value.lastchange*1000;
+						}), "placeholder_year", 7);
+				}
+			});
+		}
 		
 		function getHours(data) {
+			if(data.length < 2)
+				return [];
 			var hours = [];
 			for(var i = 0; i<24; i++) {
 				hours.push({
@@ -66,12 +100,12 @@ block content
 				});
 			}
 			var i = 0;
-			var h = new Date(data[i].value.lastchange);
+			var h = new Date(data[i].value.lastchange*1000);
 			var current = data[i].value.open;
 			h.setMinutes(0);
 			h.setSeconds(0);
 			h = h.getTime() + 60 * 60 * 1000;
-			var next = data[1].value.lastchange;
+			var next = data[1].value.lastchange*1000;
 
 			while(h < (new Date()).getTime()) {
 				if(h > next) {
@@ -80,7 +114,7 @@ block content
 					if(data[i+1] == null) {
 						next = new Date().getTime();
 					} else {
-						next = data[i+1].value.lastchange;
+						next = data[i+1].value.lastchange*1000;
 					}
 				} else {
 					hours[(new Date(h)).getHours()][current ? "open" : "close"]++;
@@ -93,7 +127,7 @@ block content
 		function drawStuff(data, placeholder, num_ticks) {
 			var x = d3.time.scale()
 				.domain([d3.min(data, function(d) {
-					return new Date(d.value.lastchange);
+					return new Date(d.value.lastchange*1000);
 				}), new Date()])
 				.range([0,window.innerWidth - 200]);
 			var chart = d3.select("span#" + placeholder).append("svg")
@@ -104,13 +138,13 @@ block content
 				.enter().append("rect")
 				.attr("y", 20)
 				.attr("x", function(d, i) {
-					return x(new Date(d.value.lastchange))
+					return x(new Date(d.value.lastchange*1000))
 				})
 				.attr("width", function(d, i) {
 					if(i+1 < data.length) {
-						return x(data[i+1].value.lastchange) - x(d.value.lastchange)
+						return x(data[i+1].value.lastchange*1000) - x(d.value.lastchange*1000)
 					}
-					return x(new Date()) - x(d.value.lastchange);
+					return x(new Date()) - x(d.value.lastchange*1000);
 				})
 				.attr("height", 30)
 				.attr("style", function(d) {
@@ -142,16 +176,17 @@ block content
 			var open_time = 0;
 			var closed_time = 0;
 			for(var i = 0; i < (data.length - 1); i++) {
-				timediff = data[i+1].value.lastchange - data[i].value.lastchange;
+				timediff = data[i+1].value.lastchange*1000 - data[i].value.lastchange*1000;
 				if(data[i].value.open)
 					open_time += timediff;
 				else
 					closed_time += timediff;
 			}
+			console.log(data);
 			if(data[data.length -1].value.open) {
-				open_time += (new Date()).getTime()- data[data.length - 1].value.lastchange;
+				open_time += (new Date()).getTime()- data[data.length - 1].value.lastchange*1000;
 			} else {
-				closed_time +=  (new Date()).getTime() - data[data.length - 1].value.lastchange;
+				closed_time +=  (new Date()).getTime() - data[data.length - 1].value.lastchange*1000;
 			}
 
 			svg = d3.select("span#" + placeholder)
@@ -209,7 +244,6 @@ block content
 				})
 				.attr("width", 25)
 				.attr("height", function(d) {
-					console.log(d);
 					return 200 * d.open / (d.open + d.close);
 				})
 				.attr("style", "fill: #0c0")
