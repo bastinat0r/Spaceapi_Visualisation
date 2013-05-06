@@ -42,4 +42,25 @@ function update(obj, dbpath, cb) {
 	});
 }
 
+function updateList(list, dbpath, cb) {
+	if(list[0]) {
+		update(list.pop(), dbpath, function(res) {
+			res.on('data', util.puts);
+			res.on('end', function() {
+				updateList(list, dbpath, cb);
+			});
+		});
+	} else {
+		cb();
+	}
+}
+
+function createDB(dbpath, cb) {
+	putOpts.path = dbpath;
+	var req = http.request(putOpts, cb);
+	req.end();
+}
+
 module.exports.update = update;
+module.exports.updateList = updateList;
+module.exports.createDB = createDB;
