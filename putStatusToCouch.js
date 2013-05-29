@@ -51,7 +51,7 @@ function getListItems(spaces) {
 				data = JSON.parse(data);
 				util.puts(util.inspect(data));
 				var spacedate = {
-					name : data.name,
+					space : data.space,
 					open : false,
 					lastchange : (new Date()).getTime() / 1000,
 				}
