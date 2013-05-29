@@ -49,6 +49,25 @@ function getListItems(spaces) {
 		res.on('end', function() {
 			try {
 				data = JSON.parse(data);
+				util.puts(util.inspect(data));
+				var spacedate = {
+					name : data.name,
+					open : false,
+					lastchange : (new Date()).getTime() / 1000,
+				}
+				if(data.lastchange)
+					spacedate.lastchange = data.lastchange;
+				if(data.open) {
+					spacedate.open = true;
+				}
+				if(data.state) {
+					if(data.state.lastchange) {
+						spacedate.lastchange = data.state.lastchange;
+					}
+					if(data.state.open) {
+						spacedate.open = true;
+					}
+				}
 				couch.update(data, "/" + current.id + "/", function(res) {
 					res.on('data', util.puts);
 					res.on('end', function() {
