@@ -12,11 +12,13 @@ function getHttpAndHttps(url, cb) {
 		https.get(url, cb).on('error', function(e) {
 			util.puts(JSON.stringify(e));
 			util.puts(url);
+			cb(null);
 		});
 	} else {
 		http.get(url, cb).on('error', function(e) {
 			util.puts(JSON.stringify(e));
 			util.puts(url);
+			cb(null);
 		});
 	}
 }
@@ -42,6 +44,10 @@ function getListItems(spaces) {
 		return;
 
 	getHttpAndHttps(current.key, function(res) {
+		if(res == null) {
+			getListItems(spaces)
+			return;
+		}
 		data = "";
 		res.on('data', function(chunk){
 			data = data + chunk;
@@ -68,7 +74,8 @@ function getListItems(spaces) {
 						spacedate.open = true;
 					}
 				}
-				couch.update(data, "/" + current.id + "/", function(res) {
+				util.puts(util.inspect(spacedate));
+				couch.update(spacedate, "/" + current.id + "/", function(res) {
 					res.on('data', util.puts);
 					res.on('end', function() {
 						getListItems(spaces);
