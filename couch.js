@@ -38,7 +38,12 @@ function update(obj, dbpath, cb) {
 			putOpts.path = dbpath + obj["_id"];
 			var req = http.request(putOpts, cb);
 			req.end(JSON.stringify(obj));
+			req.on('error', function(e){
+				util.puts(e);
+			});
 		});
+	}).on('error', function(e) {
+		util.puts(e);
 	});
 }
 
@@ -59,6 +64,9 @@ function createDB(dbpath, cb) {
 	putOpts.path = dbpath;
 	var req = http.request(putOpts, cb);
 	req.end();
+	req.on('error', function(e) {
+		util.puts(e);
+	});
 }
 
 module.exports.update = update;

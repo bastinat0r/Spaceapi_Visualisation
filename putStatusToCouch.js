@@ -34,6 +34,9 @@ function putToCouch() {
 			util.puts(JSON.stringify(spaces));
 			getListItems(spaces);
 		});
+	}).on('error', function(e) {
+		util.puts('Couch Response Error');
+		util.puts(e);
 	});
 }
 
