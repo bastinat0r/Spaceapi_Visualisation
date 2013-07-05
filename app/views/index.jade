@@ -244,23 +244,25 @@ block content
 				.domain([0,23])
 				.range([100,700]);
 
-			chart.selectAll("rect")
+			var bars = chart.selectAll("rect")
 				.data(getHours(data))
 				.enter().append("rect")
-				.attr("y", function(d) {
-					return 220 - 200 * d.open / (d.open + d.close);
-				})
+				.attr("y", 220)
 				.attr("x", function(d, i) {
 					return x(d.id)
 				})
 				.attr("width", 25)
-				.attr("height", function(d) {
-					return 200 * d.open / (d.open + d.close);
-				})
 				.attr("style", "fill: #0c0")
 				.append("svg:title").text(function(d) {
 					return (d.open / (d.open + d.close) * 100).toFixed(2) + "%";
-				});
+				})
+			chart.selectAll("rect").transition().duration(1000)
+				.attr("height", function(d) {
+					return 200 * d.open / (d.open + d.close);
+				})
+				.attr("y", function(d) {
+					return 220 - 200 * d.open / (d.open + d.close);
+				})
 				
 			chart.selectAll("text")
 				.data(getHours(data))
