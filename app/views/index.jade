@@ -4,7 +4,7 @@ block content
 	script(src="/static/javascripts/d3/d3.js")
 	
 	div(class="row-fluid")
-		select
+		select(autofocus)
 
 	div(class="row-fluid")
 		h3 week
@@ -31,16 +31,27 @@ block content
 				console.log(err);
 			else {
 				data = res.rows;
+				data = data.sort(function(a, b) {
+					if(a.value.name.toLowerCase() < b.value.name.toLowerCase())
+						return -1;
+					return 1;
+				});
 				console.log(data);
 				var sel = d3.select("select");
 				sel.selectAll("option")
-					.data(data)
+					.data(data, function(d) {
+						return d.value._id;
+					})
 					.enter().append("option")
 					.attr("value", function(d) {
 						return d.value._id;
 					})
 					.text(function(d) {
 						return d.value.name;
+					})
+					.attr("selected", function(d) {
+						if(d.value._id == "netz39")
+							return "selected";
 					});
 				sel.on('change', function() {
 					var v = sel.node().options[sel.node().options.selectedIndex].value;
