@@ -45,10 +45,11 @@ function getListItems(spaces) {
 	
 	if(!current)
 		return;
-
+	
+	util.puts(current.key);
+	timers.setTimeout(getListItems, 3000, spaces);
 	getHttpAndHttps(current.key, function(res) {
 		if(res == null) {
-			getListItems(spaces)
 			return;
 		}
 		data = "";
@@ -81,12 +82,10 @@ function getListItems(spaces) {
 				couch.update(spacedate, "/" + current.id + "/", function(res) {
 					res.on('data', util.puts);
 					res.on('end', function() {
-						getListItems(spaces);
 					});
 				});
 			} catch (e) {
 				util.puts(current.key);
-				getListItems(spaces);
 			}
 		});
 	});
