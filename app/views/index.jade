@@ -6,7 +6,8 @@ block content
 	div(class="row-fluid")
 		div(class="span2")
 			select(autofocus)
-		div(class="span10", id="spaceInfo")
+		div(class="span8", id="spaceInfo")
+		div(class="span2", id="statusLogo", style="position: relative; vertical-align: center;display: block; height: 100%")
 
 	div(class="row-fluid")
 		h3 week
@@ -104,6 +105,7 @@ block content
 
 		function showSpaceInfo(spacename) {
 			d3.select("div#spaceInfo").select("dl").remove();
+			d3.select("div#statusLogo").select("img").remove();
 			d3.json("/current/"+spacename, function(err, res) {
 				if(err) {
 					console.log(err);
@@ -116,6 +118,10 @@ block content
 							res.lat = res.location.lat;
 							res.lon = res.location.lon;
 						};
+						if(res.state) {
+							res.open = res.state.open;
+							res.icon = res.state.icon;
+						}
 					}
 					var si = d3.select("div#spaceInfo").append("dl")
 						.attr("class", "dl-horizontal");
@@ -141,8 +147,20 @@ block content
 						si.append("dd")
 							.text((new Date(res.lastchange * 1000)).toLocaleString());
 					}
-					si.append("dt").text("coordinates");
-					si.append("dd").text("lat: " + res.lat + ", lon: " + res.lon);
+					if(res.lat && res.lon) {
+						si.append("dt").text("coordinates");
+						si.append("dd").text("lat: " + res.lat + ", lon: " + res.lon);
+					}
+					if(res.icon) {	
+						d3.select("div#statusLogo").append("img")
+							.attr("src", res.open ? res.icon.open : res.icon.closed)
+							.attr("height", "100%")
+							.style("margin-top", "25px")
+							.style("margin-right", "25px")
+							.style("position", "relative")
+							.style("left", "-25px")
+							.style("display", "inline-block")
+					}
 				}
 			});
 		};
