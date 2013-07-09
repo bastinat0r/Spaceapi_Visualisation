@@ -4,7 +4,9 @@ block content
 	script(src="/static/javascripts/d3/d3.js")
 	
 	div(class="row-fluid")
-		select(autofocus)
+		div(class="span2")
+			select(autofocus)
+		div(class="span10", id="spaceInfo")
 
 	div(class="row-fluid")
 		h3 week
@@ -62,6 +64,7 @@ block content
 		});
 			
 		function drawAll(spacename) {
+			showSpaceInfo(spacename);
 			d3.selectAll("svg").remove();
 			d3.json("/"+spacename+"/_design/space/_view/all?startkey="+((new Date()).getTime() - 7 * 24 * 60 * 60 * 1000)/1000 + "&endkey="+ (new Date()).getTime()/1000 ,function(err, res) {
 				if(err)
@@ -98,6 +101,51 @@ block content
 				}
 			});
 		}
+
+		function showSpaceInfo(spacename) {
+			d3.select("div#spaceInfo").select("dl").remove();
+			d3.json("/current/"+spacename, function(err, res) {
+				if(err) {
+					console.log(err);
+				}
+				if(res) {
+					console.log(res);
+					if(res.api == "0.13") {
+						if(res.location) {
+							res.address = res.location.address;
+							res.lat = res.location.lat;
+							res.lon = res.location.lon;
+						};
+					}
+					var si = d3.select("div#spaceInfo").append("dl")
+						.attr("class", "dl-horizontal");
+					si.append("dt").text("name");
+					si.append("dd").text(res.space);
+					if(res.address) {
+						si.append("dt").text("address");
+						si.append("dd").text(res.address);
+					}
+					si.append("dt").text("api version");
+					si.append("dd").text(res.api);
+					si.append("dt").text("contact");
+					var contact = si.append("dd").append("ul").attr("class", "unstyled");
+					for(var c in res.contact) {
+						contact.append("li").text(c + ": " + res.contact[c]);
+					}
+					si.append("dt").text("website");
+					si.append("dd").append("a")
+						.attr("href", res.url)
+						.text(res.url);
+					if(res.lastchange) {
+						si.append("dt").text("last update");
+						si.append("dd")
+							.text((new Date(res.lastchange * 1000)).toLocaleString());
+					}
+					si.append("dt").text("coordinates");
+					si.append("dd").text("lat: " + res.lat + ", lon: " + res.lon);
+				}
+			});
+		};
 		
 		function getHours(data) {
 			if(data.length < 2)

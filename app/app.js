@@ -7,7 +7,8 @@ var util = require('util');
 var express = require('express')
   , routes = require('./routes')
   , http = require('http')
-  , path = require('path');
+  , path = require('path')
+	, https = require('https');
 
 var app = express();
 
@@ -29,6 +30,22 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
+function getHttpAndHttps(url, cb) {
+	if(/^https/.test(url)) {
+		https.get(url, cb).on('error', function(e) {
+			util.puts(JSON.stringify(e));
+			util.puts(url);
+			cb(null);
+		});
+	} else {
+		http.get(url, cb).on('error', function(e) {
+			util.puts(JSON.stringify(e));
+			util.puts(url);
+			cb(null);
+		});
+	}
+}
+
 app.get('/', routes.index);
 app.get(/_design/, function(req, res) {
 	var opts = {
@@ -48,6 +65,43 @@ app.get(/_design/, function(req, res) {
 		});
 	}).end();
 
+});
+app.get(/^\/current/, function(req, srvRes) {
+	var s = req.originalUrl.split("/");
+	if(s[2]) {
+		var id = s[2];
+		util.puts(id);
+		http.get("http://localhost:5984/spaces/"+id, function(res) {
+			var data = "";
+			res.on('data', function(chunk) {
+				data = data + chunk;
+			});
+			res.on('end', function() {
+				var space = JSON.parse(data);
+				util.puts(space.url);
+				getHttpAndHttps(""+space.url, function(spaceApiRes) {
+					if(spaceApiRes && spaceApiRes.statusCode < 300) {
+						srvRes.writeHead(200);
+						spaceApiRes.on('data', function(data) {
+							srvRes.write(data);
+						});
+						spaceApiRes.on('end', function() {
+							srvRes.end();
+						});
+					} else {
+						srvRes.writeHead(404);
+						srvRes.end(JSON.stringify("not found"));
+					}
+				});
+			});
+		}).on('error', function(err) {
+			util.puts(err);
+		});
+	}
+	else {
+		srvRes.writeHead(404);
+		srvRes.end(JSON.stringify("not found"));
+	}
 });
 
 http.createServer(app).listen(app.get('port'), function(){
