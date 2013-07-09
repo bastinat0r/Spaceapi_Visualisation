@@ -334,9 +334,9 @@ block content
 				.data(getHours(data))
 				.enter().append("text")
 				.attr("x", function (d, i) {
-					return x(d.id) + 10;
+					return x(d.id) + 12;
 				})
-				.attr("y", 20)
+				.attr("y", 215)
 				.style("text-anchor", "middle")
 				.text(function(d) {return d.id;});
 
