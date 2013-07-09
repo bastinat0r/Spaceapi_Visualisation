@@ -59,7 +59,7 @@ function getListItems(spaces) {
 		res.on('end', function() {
 			try {
 				data = JSON.parse(data);
-				util.puts(util.inspect(data));
+				// util.puts(util.inspect(data));
 				var spacedate = {
 					space : data.space,
 					open : false,
@@ -79,11 +79,32 @@ function getListItems(spaces) {
 					}
 				}
 				util.puts(util.inspect(spacedate));
-				couch.update(spacedate, "/" + current.id + "/", function(res) {
-					res.on('data', util.puts);
+				
+				/* get last info and compare lastchange */
+				http.get('http://localhost:5984/' + current.id + '/_design/space/_view/all', function(res) {
+					var data = "";
+					res.on('data', function(chunk) {
+						data = data + chunk;
+					});
 					res.on('end', function() {
+						var answer = JSON.parse(data).rows;
+						if(answer && answer.length > 0) {
+							var last = answer.pop();
+							if(last.value.open == spacedate.open) {
+								util.puts("Already have this: ");
+								util.puts(util.inspect(last));
+								return;
+							}
+						}
+						couch.update(spacedate, "/" + current.id + "/", function(res) {
+							res.on('data', util.puts);
+							res.on('end', function() {
+							});
+						});
 					});
 				});
+
+				
 			} catch (e) {
 				util.puts(current.key);
 			}
