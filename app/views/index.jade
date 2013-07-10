@@ -5,10 +5,14 @@ block content
 	
 	div(class="row-fluid")
 		div(class="span3")
-			select(autofocus)
-			br
-			br
-			p(class="muted") This page displays statistics gathered from the <a href="http://spaceapi.net/">spaceAPI</a>. You see a timeline of the status for each hackerspace and at what time the hackerspace is most propably open.
+			div(class="row-fluid")
+				div(class="span9", id="divSelect")
+					select(autofocus, style="width: 100%")
+				div(class="span3", id="Logo")
+			div(class="row-fluid")
+				br
+				br
+				p(class="muted") This page displays statistics gathered from the <a href="http://spaceapi.net/">spaceAPI</a>. You see a timeline of the status for each hackerspace and at what time the hackerspace is most propably open.
 		div(class="span7", id="spaceInfo")
 		div(class="span2", id="statusLogo", style="position: relative; vertical-align: center;display: block; height: 100%")
 
@@ -40,7 +44,7 @@ block content
 				(function(i){var f,s=document.getElementById(i);f=document.createElement('iframe');f.src='//api.flattr.com/button/view/?uid=Bastinat0r&button=compact&url='+encodeURIComponent(document.URL);f.title='Flattr';f.height=20;f.width=110;f.style.borderWidth=0;s.parentNode.insertBefore(f,s);})('flattrbtn');
 
 	script(type="text/javascript")
-		drawAll("netz39");
+		drawAll(window.location.hash ? window.location.hash.substring(1): "netz39");
 		d3.json("/spaces/_design/all/_view/json", function(err, res) {
 			if(err)
 				console.log(err);
@@ -65,8 +69,13 @@ block content
 						return d.value.name;
 					})
 					.attr("selected", function(d) {
-						if(d.value._id == "netz39")
+						if(!window.location.hash) {
+							if(d.value._id == "netz39")
+								return "selected";
+						}
+						if(("#" + d.value._id) == window.location.hash) {
 							return "selected";
+						}
 					});
 				sel.on('change', function() {
 					var v = sel.node().options[sel.node().options.selectedIndex].value;
@@ -118,6 +127,11 @@ block content
 		function showSpaceInfo(spacename) {
 			d3.select("div#spaceInfo").selectAll("dl").remove();
 			d3.select("div#statusLogo").selectAll("img").remove();
+			d3.select("div#Logo").selectAll("img").remove();
+			d3.select("div#divSelect").selectAll("a").remove();
+			d3.select("div#divSelect").append("a")
+				.attr("href", "#"+spacename)
+				.text("permalink");
 			d3.json("/current/"+spacename, function(err, res) {
 				if(err) {
 					console.log(err);
@@ -134,6 +148,11 @@ block content
 							res.open = res.state.open;
 							res.icon = res.state.icon;
 						}
+					}
+					if(res.logo) {	
+						d3.select("div#Logo").append("img")
+							.attr("src", res.logo)
+							.style("width", "100%");
 					}
 					var si = d3.select("div#spaceInfo").append("dl")
 						.attr("class", "dl-horizontal");
@@ -177,9 +196,9 @@ block content
 							.style("margin-top", "25px")
 							.style("margin-right", "25px")
 							.style("position", "relative")
-							.style("left", "-25px")
 							.style("display", "inline-block")
 					}
+					
 				}
 			});
 		};
