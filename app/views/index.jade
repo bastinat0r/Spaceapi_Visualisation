@@ -113,8 +113,8 @@ block content
 		}
 
 		function showSpaceInfo(spacename) {
-			d3.select("div#spaceInfo").select("dl").remove();
-			d3.select("div#statusLogo").select("img").remove();
+			d3.select("div#spaceInfo").selectAll("dl").remove();
+			d3.select("div#statusLogo").selectAll("img").remove();
 			d3.json("/current/"+spacename, function(err, res) {
 				if(err) {
 					console.log(err);
