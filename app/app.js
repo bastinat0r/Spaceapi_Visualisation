@@ -56,12 +56,17 @@ app.get(/_design/, function(req, res) {
 	};
 	util.puts(opts.path);
 	var dbReq = http.request(opts, function(dbRes) {
-		res.writeHead(dbRes.statusCode, dbRes.headers);
+		var data = "";
 		dbRes.on('data', function(chunk) {
-			res.write(chunk);
+			data = data + chunk;
 		});
 		dbRes.on('end', function() {
-			res.end();
+			headers = {
+				'content-length' : data.length,
+				'content-type' : 'application/json'
+			}
+			res.writeHead(dbRes.statusCode, headers);
+			res.end(data);
 		});
 	}).end();
 
