@@ -163,6 +163,13 @@ block content
 						si.append("dt").text("coordinates");
 						si.append("dd").text("lat: " + res.lat + ", lon: " + res.lon);
 					}
+					if(res.cam) {
+						si.append("dt").text("webcam");
+						var contact = si.append("dd").append("ul").attr("class", "unstyled");
+						for(var c in res.cam) {
+							contact.append("li").append("a").attr("href", res.cam[c]).text(res.cam[c]);
+						}
+					}
 					if(res.icon) {	
 						d3.select("div#statusLogo").append("img")
 							.attr("src", res.open ? res.icon.open : res.icon.closed)
