@@ -4,5 +4,5 @@
  */
 
 exports.index = function(req, res){
-  res.render('index', { title: 'Hackerspaces Status' });
+  res.render('index', { title: 'Spaceapi Statistics' });
 };

@@ -4,9 +4,12 @@ block content
 	script(src="/static/javascripts/d3/d3.js")
 	
 	div(class="row-fluid")
-		div(class="span2")
+		div(class="span3")
 			select(autofocus)
-		div(class="span8", id="spaceInfo")
+			br
+			br
+			p(class="muted") This page displays statistics gathered from the <a href="http://spaceapi.net/">spaceAPI</a>. You see a timeline of the status for each hackerspace and at what time the hackerspace is most propably open.
+		div(class="span7", id="spaceInfo")
 		div(class="span2", id="statusLogo", style="position: relative; vertical-align: center;display: block; height: 100%")
 
 	div(class="row-fluid")
@@ -28,11 +31,11 @@ block content
 				span(id="placeholder_year")
 	div(class="row-fluid")
 		div(class="span6")
-			p This page was created by bastinat0r. You can 
+			p This page was created by bastinat0r from <a href="http://netz39.de">Netz39</a> in Magdeburg. You can 
 				a(href="https://twitter.com/bastinat0r") find me on Twitter
-		div(class="span5", style="text-align: right")
+		div(class="span4", style="text-align: right")
 			p And support me via Flattr:
-		div(class="span1")
+		div(class="span2")
 			script(id='flattrbtn')
 				(function(i){var f,s=document.getElementById(i);f=document.createElement('iframe');f.src='//api.flattr.com/button/view/?uid=Bastinat0r&button=compact&url='+encodeURIComponent(document.URL);f.title='Flattr';f.height=20;f.width=110;f.style.borderWidth=0;s.parentNode.insertBefore(f,s);})('flattrbtn');
 
