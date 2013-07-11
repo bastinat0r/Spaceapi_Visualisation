@@ -16,19 +16,19 @@ block content
 		div(class="span7", id="spaceInfo")
 		div(class="span2", id="statusLogo", style="position: relative; vertical-align: center;display: block; height: 100%")
 
-	div(class="row-fluid")
+	div(class="row-fluid", id="rowWeek")
 		h3 week
 		div(class="hero-unit")
 			small
 				span(id="placeholder_week")
 
-	div(class="row-fluid")
+	div(class="row-fluid", id="rowMonth")
 		h3 month
 		div(class="hero-unit")
 			small
 				span(id="placeholder_month")
 
-	div(class="row-fluid")
+	div(class="row-fluid", id="rowYear")
 		h3 year
 		div(class="hero-unit")
 			small
@@ -89,37 +89,52 @@ block content
 			showSpaceInfo(spacename);
 			d3.selectAll("svg").remove();
 			d3.json("/"+spacename+"/_design/space/_view/all?startkey="+((new Date()).getTime() - 7 * 24 * 60 * 60 * 1000)/1000 + "&endkey="+ (new Date()).getTime()/1000 ,function(err, res) {
+				d3.select("div#rowWeek")
+					.style("display", "none");
 				if(err)
 					console.log(err);
 				else {
 					data = res.rows;
-					if(data[0])
+					if(data[0]) {
+						d3.select("div#rowWeek")
+							.style("display", "inline");
 						drawStuff(res.rows.sort(function(a,b) {
 							return a.value.lastchange*1000 - b.value.lastchange*1000;
 						}), "placeholder_week", 7);
+					}
 				}
 			});
 			d3.json("/"+spacename+"/_design/space/_view/all?startkey="+((new Date()).getTime() - 30 * 24 * 60 * 60 * 1000)/1000 + "&endkey="+ (new Date()).getTime()/1000, function(err, res) {
+				d3.select("div#rowMonth")
+					.style("display", "none");
 				if(err)
 					console.log(err);
 				else {
 					data = res.rows;
-					if(data[0])
+					if(data[0]) {
+						d3.select("div#rowMonth")
+							.style("display", "inline");
 						drawStuff(res.rows.sort(function(a,b) {
 							return a.value.lastchange*1000 - b.value.lastchange*1000;
 						}), "placeholder_month", 7);
+					}
 				}
 			});
 			
 			d3.json("/"+spacename+"/_design/space/_view/all?startkey="+((new Date()).getTime() - 356 * 24 * 60 * 60 * 1000)/1000 + "&endkey="+ (new Date()).getTime()/1000, function(err, res) {
+				d3.select("div#rowYear")
+					.style("display", "none");
 				if(err)
 					console.log(err);
 				else {
 					data = res.rows;
-					if(data[0]) 
+					if(data[0]) {
+						d3.select("div#rowYear")
+							.style("display", "inline");
 						drawStuff(res.rows.sort(function(a,b) {
 							return a.value.lastchange*1000 - b.value.lastchange*1000;
 						}), "placeholder_year", 7);
+					}
 				}
 			});
 		}
