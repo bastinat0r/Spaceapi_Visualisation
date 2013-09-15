@@ -13,12 +13,16 @@ function getHttpAndHttps(url, cb) {
 			util.puts(JSON.stringify(e));
 			util.puts(url);
 			cb(null);
+		}).on('error', function(e) {
+			util.puts(e);
 		});
 	} else {
 		http.get(url, cb).on('error', function(e) {
 			util.puts(JSON.stringify(e));
 			util.puts(url);
 			cb(null);
+		}).on('error', function(e) {
+			util.puts(e);
 		});
 	}
 }
