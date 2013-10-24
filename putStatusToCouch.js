@@ -94,6 +94,11 @@ function getListItems(spaces) {
 						var answer = JSON.parse(data).rows;
 						if(answer && answer.length > 0) {
 							var last = answer.pop();
+							while(last.key > (new Date()).getTime()) {
+								util.puts('ERR: DB-Entry in the future');
+								util.puts(util.inspect(last));
+								last = answer.pop();
+							}
 							if(last.value.open == spacedate.open) {
 								util.puts("Already have this: ");
 								util.puts(util.inspect(last));
