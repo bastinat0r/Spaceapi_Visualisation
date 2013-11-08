@@ -182,7 +182,9 @@ block content
 					si.append("dt").text("contact");
 					var contact = si.append("dd").append("ul").attr("class", "unstyled");
 					for(var c in res.contact) {
-						contact.append("li").text(c + ": " + res.contact[c]);
+						if(c != "issue_mail") {
+							contact.append("li").text(c + ": " + res.contact[c]);
+						}
 					}
 					si.append("dt").text("website");
 					si.append("dd").append("a")
