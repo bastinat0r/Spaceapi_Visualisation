@@ -303,7 +303,7 @@ block content
 				.attr("text-anchor", "middle")
 				.text(function(d) {
 					x = new Date(d)
-					return x.getYear() + "-" + x.getMonth() + "-" + x.getDay();
+					return x.getFullYear() + "-" + (x.getMonth()+1) + "-" + x.getDate();
 				});
 
 			var open_time = 0;
