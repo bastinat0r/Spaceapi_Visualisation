@@ -302,7 +302,8 @@ block content
 				.attr("y", 12)
 				.attr("text-anchor", "middle")
 				.text(function(d) {
-					return (new Date(d)).toLocaleDateString();
+					x = new Date(d)
+					return x.year + "-" + x.month + "-" + x.day;
 				});
 
 			var open_time = 0;
