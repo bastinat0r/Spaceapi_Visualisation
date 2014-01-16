@@ -165,7 +165,7 @@ function showSpaceInfo(spacename) {
 			if(!res.icon) {
 				res.icon = {
 					open : "http://bastinat0r.de/open.png",
-					close : "http://bastinat0r.de/close.png"
+					closed : "http://bastinat0r.de/close.png"
 				}
 			}
 			d3.select("div#statusLogo").append("img")
