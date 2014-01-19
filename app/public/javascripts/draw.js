@@ -1,5 +1,6 @@
 
 drawAll(window.location.hash ? window.location.hash.substring(1): "netz39");
+
 d3.json("/spaces/_design/all/_view/json", function(err, res) {
 	if(err)
 		console.log(err);
@@ -152,7 +153,7 @@ function showSpaceInfo(spacename) {
 			}
 			if(res.lat && res.lon) {
 				si.append("dt").text("coordinates");
-				si.append("dd").text("lat: " + res.lat + ", lon: " + res.lon);
+				si.append("dd").html("<a href=\"http://www.openstreetmap.org/?mlat=" + res.lat + "&mlon="+ res.lon + "&zoom=12\">" + "lat: " + res.lat + ", lon: " + res.lon + "</a>");
 			}
 			if(res.cam) {
 				si.append("dt").text("webcam");
