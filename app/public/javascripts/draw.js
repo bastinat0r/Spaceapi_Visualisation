@@ -44,7 +44,12 @@ d3.json("/spaces/_design/all/_view/json", function(err, res) {
 function drawAll(spacename) {
 	showSpaceInfo(spacename);
 	d3.selectAll("svg").remove();
-	d3.json("/"+spacename+"/_design/space/_view/all?startkey="+((new Date()).getTime() - 7 * 24 * 60 * 60 * 1000)/1000 + "&endkey="+ (new Date()).getTime()/1000 ,function(err, res) {
+
+	now = (new Date()).getTime()/1000;
+	oneweek = now - 7 * 24 * 60 * 60;
+	onemonth = now - 30 * 24 * 60 * 60;
+	oneyear = Math.max(now - 356 * 24 * 60 * 60, 1372684896); // t-1y > start-of-logging ?
+	d3.json("/"+spacename+"/_design/space/_view/all?startkey=" + oneweek + "&endkey=" + now ,function(err, res) {
 		d3.select("div#rowWeek")
 			.style("display", "none");
 		if(err)
@@ -52,6 +57,7 @@ function drawAll(spacename) {
 		else {
 			data = res.rows;
 			if(data[0]) {
+				data.unshift({id : "0", key: oneweek, value: {lastchange: oneweek, open: !data[0].value.open}})
 				d3.select("div#rowWeek")
 					.style("display", "inline");
 				drawStuff(res.rows.sort(function(a,b) {
@@ -60,7 +66,7 @@ function drawAll(spacename) {
 			}
 		}
 	});
-	d3.json("/"+spacename+"/_design/space/_view/all?startkey="+((new Date()).getTime() - 30 * 24 * 60 * 60 * 1000)/1000 + "&endkey="+ (new Date()).getTime()/1000, function(err, res) {
+	d3.json("/"+spacename+"/_design/space/_view/all?startkey=" + onemonth + "&endkey=" + now, function(err, res) {
 		d3.select("div#rowMonth")
 			.style("display", "none");
 		if(err)
@@ -68,6 +74,7 @@ function drawAll(spacename) {
 		else {
 			data = res.rows;
 			if(data[0]) {
+				data.unshift({id : "0", key: onemonth, value: {lastchange: onemonth, open: !data[0].value.open}})
 				d3.select("div#rowMonth")
 					.style("display", "inline");
 				drawStuff(res.rows.sort(function(a,b) {
@@ -77,7 +84,7 @@ function drawAll(spacename) {
 		}
 	});
 	
-	d3.json("/"+spacename+"/_design/space/_view/all?startkey="+((new Date()).getTime() - 356 * 24 * 60 * 60 * 1000)/1000 + "&endkey="+ (new Date()).getTime()/1000, function(err, res) {
+	d3.json("/"+spacename+"/_design/space/_view/all?startkey=" + oneyear + "&endkey=" + now, function(err, res) {
 		d3.select("div#rowYear")
 			.style("display", "none");
 		if(err)
@@ -85,6 +92,7 @@ function drawAll(spacename) {
 		else {
 			data = res.rows;
 			if(data[0]) {
+				data.unshift({id : "0", key: oneyear, value: {lastchange: oneyear, open: false}})
 				d3.select("div#rowYear")
 					.style("display", "inline");
 				drawStuff(res.rows.sort(function(a,b) {
