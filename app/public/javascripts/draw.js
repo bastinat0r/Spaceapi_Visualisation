@@ -60,9 +60,12 @@ function drawAll(spacename) {
 				data.unshift({id : "0", key: oneweek, value: {lastchange: oneweek, open: !data[0].value.open}})
 				d3.select("div#rowWeek")
 					.style("display", "inline");
-				drawStuff(res.rows.sort(function(a,b) {
+				data_week = res.rows.sort(function(a,b) {
 					return a.value.lastchange*1000 - b.value.lastchange*1000;
-				}), "placeholder_week", 7);
+				});
+				drawTimeline(data_week, "placeholder_week", 7);
+				drawUptime(data_week, "placeholder_week");
+				drawBarchart(data_week, "placeholder_week");
 			}
 		}
 	});
@@ -77,9 +80,12 @@ function drawAll(spacename) {
 				data.unshift({id : "0", key: onemonth, value: {lastchange: onemonth, open: !data[0].value.open}})
 				d3.select("div#rowMonth")
 					.style("display", "inline");
-				drawStuff(res.rows.sort(function(a,b) {
+				data_month = res.rows.sort(function(a,b) {
 					return a.value.lastchange*1000 - b.value.lastchange*1000;
-				}), "placeholder_month", 7);
+				});
+				drawTimeline(data_month, "placeholder_month", 7);
+				drawUptime(data_month, "placeholder_month");
+				drawBarchart(data_month, "placeholder_month");
 			}
 		}
 	});
@@ -95,9 +101,12 @@ function drawAll(spacename) {
 				data.unshift({id : "0", key: oneyear, value: {lastchange: oneyear, open: false}})
 				d3.select("div#rowYear")
 					.style("display", "inline");
-				drawStuff(res.rows.sort(function(a,b) {
+				data_year = res.rows.sort(function(a,b) {
 					return a.value.lastchange*1000 - b.value.lastchange*1000;
-				}), "placeholder_year", 7);
+				});
+				drawTimeline(data_year, "placeholder_year", 7);
+				drawUptime(data_year, "placeholder_year");
+				drawBarchart(data_year, "placeholder_year");
 			}
 		}
 	});
@@ -225,6 +234,53 @@ function getHours(data) {
 };
 
 function drawStuff(data, placeholder, num_ticks) {
+	drawTimeline(data, placeholder, num_ticks);
+	drawUptime(data, placeholder);
+	drawBarchart(data, placeholder);
+}
+
+function drawBarchart(data, placeholder) {
+
+	var chart = d3.select("span#" + placeholder).append("svg")
+		.attr("height", 220)
+		.attr("width", 800)
+
+	var x = d3.scale.linear()
+		.domain([0,23])
+		.range([100,700]);
+
+	var bars = chart.selectAll("rect")
+		.data(getHours(data))
+		.enter().append("rect")
+		.attr("y", 220)
+		.attr("x", function(d, i) {
+			return x(d.id)
+		})
+		.attr("width", 25)
+		.attr("style", "fill: #0c0")
+		.append("svg:title").text(function(d) {
+			return (d.open / (d.open + d.close) * 100).toFixed(2) + "%";
+		})
+	chart.selectAll("rect").transition().duration(1000)
+		.attr("height", function(d) {
+			return 200 * d.open / (d.open + d.close);
+		})
+		.attr("y", function(d) {
+			return 220 - 200 * d.open / (d.open + d.close);
+		})
+		
+	chart.selectAll("text")
+		.data(getHours(data))
+		.enter().append("text")
+		.attr("x", function (d, i) {
+			return x(d.id) + 12;
+		})
+		.attr("y", 215)
+		.style("text-anchor", "middle")
+		.text(function(d) {return d.id;});
+}
+
+function drawTimeline(data, placeholder, num_ticks) {
 	var x = d3.time.scale()
 		.domain([d3.min(data, function(d) {
 			return new Date(d.value.lastchange*1000);
@@ -273,6 +329,9 @@ function drawStuff(data, placeholder, num_ticks) {
 			x = new Date(d)
 			return x.toISOString().split('T')[0]
 		});
+}
+
+function drawUptime(data, placeholder) {
 
 	var open_time = 0;
 	var closed_time = 0;
@@ -325,43 +384,4 @@ function drawStuff(data, placeholder, num_ticks) {
 		.attr("dy", ".35em")
 		.style("text-anchor", "middle")
 		.text(function(d) { return (d.data.open ? "open " : "closed ") + (100 * d.data.time / (open_time + closed_time)).toFixed(2) + "%";})
-	
-	var chart = d3.select("span#" + placeholder).append("svg")
-		.attr("height", 220)
-		.attr("width", 800)
-
-	var x = d3.scale.linear()
-		.domain([0,23])
-		.range([100,700]);
-
-	var bars = chart.selectAll("rect")
-		.data(getHours(data))
-		.enter().append("rect")
-		.attr("y", 220)
-		.attr("x", function(d, i) {
-			return x(d.id)
-		})
-		.attr("width", 25)
-		.attr("style", "fill: #0c0")
-		.append("svg:title").text(function(d) {
-			return (d.open / (d.open + d.close) * 100).toFixed(2) + "%";
-		})
-	chart.selectAll("rect").transition().duration(1000)
-		.attr("height", function(d) {
-			return 200 * d.open / (d.open + d.close);
-		})
-		.attr("y", function(d) {
-			return 220 - 200 * d.open / (d.open + d.close);
-		})
-		
-	chart.selectAll("text")
-		.data(getHours(data))
-		.enter().append("text")
-		.attr("x", function (d, i) {
-			return x(d.id) + 12;
-		})
-		.attr("y", 215)
-		.style("text-anchor", "middle")
-		.text(function(d) {return d.id;});
-
-}
+}	
