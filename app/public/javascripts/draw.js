@@ -49,49 +49,8 @@ function drawAll(spacename) {
 	oneweek = now - 7 * 24 * 60 * 60;
 	onemonth = now - 30 * 24 * 60 * 60;
 	oneyear = Math.max(now - 356 * 24 * 60 * 60, 1372684896); // t-1y > start-of-logging ?
-	d3.json("/"+spacename+"/_design/space/_view/all?startkey=" + oneweek + "&endkey=" + now ,function(err, res) {
-		d3.select("div#rowWeek")
-			.style("display", "none");
-		if(err)
-			console.log(err);
-		else {
-			data = res.rows;
-			if(data[0]) {
-				data.unshift({id : "0", key: oneweek, value: {lastchange: oneweek, open: !data[0].value.open}})
-				d3.select("div#rowWeek")
-					.style("display", "inline");
-				data_week = res.rows.sort(function(a,b) {
-					return a.value.lastchange*1000 - b.value.lastchange*1000;
-				});
-				drawTimeline(data_week, "placeholder_week", 7);
-				drawUptime(data_week, "placeholder_week");
-				drawBarchart(data_week, "placeholder_week");
-			}
-		}
-	});
-	d3.json("/"+spacename+"/_design/space/_view/all?startkey=" + onemonth + "&endkey=" + now, function(err, res) {
-		d3.select("div#rowMonth")
-			.style("display", "none");
-		if(err)
-			console.log(err);
-		else {
-			data = res.rows;
-			if(data[0]) {
-				data.unshift({id : "0", key: onemonth, value: {lastchange: onemonth, open: !data[0].value.open}})
-				d3.select("div#rowMonth")
-					.style("display", "inline");
-				data_month = res.rows.sort(function(a,b) {
-					return a.value.lastchange*1000 - b.value.lastchange*1000;
-				});
-				drawTimeline(data_month, "placeholder_month", 7);
-				drawUptime(data_month, "placeholder_month");
-				drawBarchart(data_month, "placeholder_month");
-			}
-		}
-	});
-	
-	d3.json("/"+spacename+"/_design/space/_view/all?startkey=" + oneyear + "&endkey=" + now, function(err, res) {
-		d3.select("div#rowYear")
+	d3.json("/"+spacename+"/_design/space/_view/all?endkey=" + now, function(err, res) {
+		d3.select("div#rowSelect")
 			.style("display", "none");
 		if(err)
 			console.log(err);
@@ -99,14 +58,34 @@ function drawAll(spacename) {
 			data = res.rows;
 			if(data[0]) {
 				data.unshift({id : "0", key: oneyear, value: {lastchange: oneyear, open: false}})
-				d3.select("div#rowYear")
+				d3.select("div#rowSelect")
 					.style("display", "inline");
-				data_year = res.rows.sort(function(a,b) {
+				data_select = res.rows.sort(function(a,b) {
 					return a.value.lastchange*1000 - b.value.lastchange*1000;
 				});
-				drawTimeline(data_year, "placeholder_year", 7);
-				drawUptime(data_year, "placeholder_year");
-				drawBarchart(data_year, "placeholder_year");
+				drawTimeline(data_select, "placeholder_select", 7);
+				
+			}
+		}
+	});
+	
+	d3.json("/"+spacename+"/_design/space/_view/all?startkey=" + oneyear + "&endkey=" + now, function(err, res) {
+		d3.select("div#rowVis")
+			.style("display", "none");
+		if(err)
+			console.log(err);
+		else {
+			data = res.rows;
+			if(data[0]) {
+				data.unshift({id : "0", key: oneyear, value: {lastchange: oneyear, open: false}})
+				d3.select("div#rowVis")
+					.style("display", "inline");
+				data_vis = res.rows.sort(function(a,b) {
+					return a.value.lastchange*1000 - b.value.lastchange*1000;
+				});
+				drawTimeline(data_vis, "placeholder_vis", 7);
+				drawUptime(data_vis, "placeholder_vis");
+				drawBarchart(data_vis, "placeholder_vis");
 			}
 		}
 	});
