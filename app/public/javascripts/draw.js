@@ -172,6 +172,7 @@ function startSelect(placeholder, num_ticks){
 		.attr('height', 35)
 		.attr('y', 20);
 
+	brush.extent([new Date(onemonth * 1000), new Date(now * 1000)]);
 	brush(b);
 	brush.on('brush', brushed);
 
@@ -338,7 +339,6 @@ function showSpaceInfo(spacename) {
 };
 
 function getHours(d) {
-	console.log(d);
 	if(d.length < 2)
 		return [];
 	var current = d.shift();
@@ -368,7 +368,6 @@ function getHours(d) {
 			full_hour = new Date(full_hour.getTime() + 60 * 60 * 1000);
 		}
 	}
-	console.log(hours);
 /*
 	var i = 0;
 	var h = new Date(data[i].value.lastchange*1000);
@@ -405,7 +404,6 @@ function drawBarchart() {
 	var d = data.filter(function(x) {
 		return (x.value.lastchange * 1000 > begin && x.value.lastchange * 1000 < end);	
 	});
-	console.log(d);
 	if(d[0]) {
 		d.unshift({id : "0", key: begin / 1000, value: {lastchange: begin / 1000, open: !d[0].value.open}});
 	}
