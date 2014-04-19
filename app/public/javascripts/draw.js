@@ -185,17 +185,15 @@ function startSelect(placeholder, num_ticks){
 	d3.select("span#placeholder_vis").append("svg")
 		.attr("class", "svgUptime")
 		.attr("width", 300)
-		.attr("height", 150)
+		.attr("height", 150);
 
 	d3.select("span#placeholder_vis").append("svg")
 		.attr("class", "svgBarchart")
 		.attr("height", 220)
-		.attr("width", 800)
+		.attr("width", 800);
 
-	drawTimeline(10);
-	drawUptime();
-	drawBarchart();
-
+	brushed();
+	
 }
 
 function drawUptime() {
