@@ -1,11 +1,13 @@
 
+
+
 drawAll(window.location.hash ? window.location.hash.substring(1): "netz39");
 
 d3.json("/spaces/_design/all/_view/json", function(err, res) {
 	if(err)
 		console.log(err);
 	else {
-		data = res.rows;
+		var data = res.rows;
 		data = data.sort(function(a, b) {
 			if(a.value.name.toLowerCase() < b.value.name.toLowerCase())
 				return -1;
@@ -40,6 +42,15 @@ d3.json("/spaces/_design/all/_view/json", function(err, res) {
 		});
 	}
 });
+
+var data = [];
+var global_scale_x = d3.time.scale();
+var scale_vis_x = d3.time.scale();
+var brush = d3.svg.brush()
+	.x(global_scale_x);
+
+var width = window.innerWidth - 200; 
+var height = 40;
 	
 function drawAll(spacename) {
 	showSpaceInfo(spacename);
@@ -60,15 +71,22 @@ function drawAll(spacename) {
 				data.unshift({id : "0", key: oneyear, value: {lastchange: oneyear, open: false}})
 				d3.select("div#rowSelect")
 					.style("display", "inline");
-				data_select = res.rows.sort(function(a,b) {
+				data = res.rows.sort(function(a,b) {
 					return a.value.lastchange*1000 - b.value.lastchange*1000;
 				});
-				drawTimeline(data_select, "placeholder_select", 7);
-				
+				global_scale_x.domain([d3.min(data, function(d) {
+					return new Date(d.value.lastchange*1000);
+				}), new Date()]);
+				brush.clear();
+				global_scale_x.range([0,width]);
+				scale_vis_x.range([0,width]);
+				scale_vis_x.domain(global_scale_x.domain());
+				startSelect("placeholder_select", 6);
+
 			}
 		}
 	});
-	
+/*	
 	d3.json("/"+spacename+"/_design/space/_view/all?startkey=" + oneyear + "&endkey=" + now, function(err, res) {
 		d3.select("div#rowVis")
 			.style("display", "none");
@@ -80,15 +98,156 @@ function drawAll(spacename) {
 				data.unshift({id : "0", key: oneyear, value: {lastchange: oneyear, open: false}})
 				d3.select("div#rowVis")
 					.style("display", "inline");
-				data_vis = res.rows.sort(function(a,b) {
+				data = res.rows.sort(function(a,b) {
 					return a.value.lastchange*1000 - b.value.lastchange*1000;
 				});
-				drawTimeline(data_vis, "placeholder_vis", 7);
-				drawUptime(data_vis, "placeholder_vis");
-				drawBarchart(data_vis, "placeholder_vis");
 			}
 		}
 	});
+*/
+}
+function brushed() {
+	scale_vis_x.domain(brush.empty() ? global_scale_x.domain() : brush.extent());
+	console.log(brush.extent());
+	//console.log(brush.empty());
+	drawTimeline(10);
+	drawUptime(data, "placeholder_vis");
+	/*
+	drawBarchart(data, "placeholder_vis");
+	*/
+}
+
+function startSelect(placeholder, num_ticks){
+	
+	var chart = d3.select("span#" + placeholder).append("svg")
+		.attr("height", 70)
+		.attr("width", width)
+	var tl = chart.append('g')
+		.attr("class", "timeline")
+
+	var rects = tl.selectAll(".bars")
+		.data(data)
+		.enter().append("rect")
+		.attr("class", "bars")
+		.attr("y", 20)
+		.attr("x", function(d, i) {
+			return global_scale_x(new Date(d.value.lastchange*1000))
+		})
+		.attr("width", function(d, i) {
+			if(i+1 < data.length) {
+				return global_scale_x(data[i+1].value.lastchange*1000) - global_scale_x(d.value.lastchange*1000)
+			}
+			return global_scale_x(new Date()) - global_scale_x(d.value.lastchange*1000);
+		})
+		.attr("height", 30)
+		.attr("style", function(d) {
+			if(d.value.open) {
+				return "fill : #0c0";
+			}
+			return "fill : #b00";
+		});
+
+
+	
+	tl.selectAll("line").data(global_scale_x.ticks(num_ticks))
+		.enter().append("line")
+		.attr("x1", global_scale_x)
+		.attr("x2", global_scale_x)
+		.attr("y1", 14)
+		.attr("y2", 50)
+		.attr("style", "stroke: #ccc");
+
+	tl.selectAll(".rule")
+		.data(global_scale_x.ticks(num_ticks))
+		.enter().append("text")
+		.attr("class", "rule")
+		.attr("x", global_scale_x)
+		.attr("y", 12)
+		.attr("text-anchor", "middle")
+		.text(function(d) {
+			x = new Date(d)
+			return x.toISOString().split('T')[0]
+		});
+
+	var b = tl.append("g")
+		.attr("class", "brush")
+		.call(brush);
+	b.selectAll('rect')
+		.attr('height', 35)
+		.attr('y', 20);
+
+	brush(b);
+	brush.on('brush', brushed);
+
+	d3.select("span#placeholder_vis").append("svg")
+		.attr("class", "svgTimeline")
+		.attr("height", 70)
+		.attr("width", width);
+
+
+	d3.select("span#placeholder_vis").append("svg")
+		.attr("class", "svgUptime")
+		.attr("width", 300)
+		.attr("height", 150)
+
+	drawTimeline(10);
+	drawUptime();
+
+}
+
+function drawUptime() {
+
+	var open_time = 0;
+	var closed_time = 0;
+	for(var i = 0; i < (data.length - 1); i++) {
+		timediff = data[i+1].value.lastchange*1000 - data[i].value.lastchange*1000;
+		if(data[i].value.open)
+			open_time += timediff;
+		else
+			closed_time += timediff;
+	}
+	if(data[data.length -1].value.open) {
+		open_time += (new Date()).getTime()- data[data.length - 1].value.lastchange*1000;
+	} else {
+		closed_time +=  (new Date()).getTime() - data[data.length - 1].value.lastchange*1000;
+	}
+
+	svg = d3.select("span#" + placeholder)
+		.append("svg")
+		.attr("width", 300)
+		.attr("height", 150)
+	.append("g")
+		.attr("transform", "translate(150, 150)");  
+
+	var pie = d3.layout.pie()
+		.sort(null)
+		.value(function(d) { return d.time; })
+		.startAngle(-1 * Math.PI / 2)
+		.endAngle(Math.PI / 2);
+
+	var arc = d3.svg.arc()
+		.outerRadius(150 - 5)
+		.innerRadius(150 - 55)
+		
+	var g = svg.selectAll(".arc")
+		.data(pie([{open: true, time: open_time}, {open: false, time: closed_time}]))
+		.enter().append("g")
+		.attr("class", "arc");
+
+	g.append("path")
+		.attr("d", arc)
+		.style("fill", function(d) {
+			if(d.data.open)
+				return "#0c0"
+			return "#b00"
+		});
+
+	g.append("text")
+		.attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+		.attr("dy", ".35em")
+		.style("text-anchor", "middle")
+		.text(function(d) { return (d.data.open ? "open " : "closed ") + (100 * d.data.time / (open_time + closed_time)).toFixed(2) + "%";})
+
 }
 
 function showSpaceInfo(spacename) {
@@ -212,12 +371,6 @@ function getHours(data) {
 	return hours;
 };
 
-function drawStuff(data, placeholder, num_ticks) {
-	drawTimeline(data, placeholder, num_ticks);
-	drawUptime(data, placeholder);
-	drawBarchart(data, placeholder);
-}
-
 function drawBarchart(data, placeholder) {
 
 	var chart = d3.select("span#" + placeholder).append("svg")
@@ -259,19 +412,14 @@ function drawBarchart(data, placeholder) {
 		.text(function(d) {return d.id;});
 }
 
-function drawTimeline(data, placeholder, num_ticks) {
-	var x = d3.time.scale()
-		.domain([d3.min(data, function(d) {
-			return new Date(d.value.lastchange*1000);
-		}), new Date()])
-		.range([0,window.innerWidth - 200]);
-	var chart = d3.select("span#" + placeholder).append("svg")
-		.attr("height", 70)
-		.attr("width", window.innerWidth - 200)
-	chart.selectAll("rect")
-		.data(data)
-		.enter().append("rect")
-		.attr("y", 20)
+function drawTimeline(num_ticks) {
+	var x = scale_vis_x;
+	var chart = d3.select("span#placeholder_vis").select(".svgTimeline");
+	var rects = chart.selectAll("rect")
+		.data(data);
+	rects.exit().remove();
+	rects.enter().append("rect");
+	rects.attr("y", 20)
 		.attr("x", function(d, i) {
 			return x(new Date(d.value.lastchange*1000))
 		})
@@ -289,18 +437,21 @@ function drawTimeline(data, placeholder, num_ticks) {
 			return "fill : #b00";
 		})
 	
-	chart.selectAll("line").data(x.ticks(num_ticks))
-		.enter().append("line")
-		.attr("x1", x)
+	var line = chart.selectAll("line").data(x.ticks(num_ticks));
+	line.enter().append("line");
+	line.exit().remove();
+	line.attr("x1", x)
 		.attr("x2", x)
 		.attr("y1", 14)
 		.attr("y2", 50)
 		.attr("style", "stroke: #ccc");
 
-	chart.selectAll(".rule")
-		.data(x.ticks(num_ticks))
-		.enter().append("text")
-		.attr("class", "rule")
+
+	var rule = chart.selectAll(".rule")
+		.data(x.ticks(num_ticks));
+	rule.enter().append("text");
+	rule.exit().remove();
+	rule.attr("class", "rule")
 		.attr("x", x)
 		.attr("y", 12)
 		.attr("text-anchor", "middle")
@@ -310,30 +461,61 @@ function drawTimeline(data, placeholder, num_ticks) {
 		});
 }
 
-function drawUptime(data, placeholder) {
+function drawUptime() {
 
 	var open_time = 0;
 	var closed_time = 0;
-	for(var i = 0; i < (data.length - 1); i++) {
-		timediff = data[i+1].value.lastchange*1000 - data[i].value.lastchange*1000;
-		if(data[i].value.open)
-			open_time += timediff;
-		else
-			closed_time += timediff;
-	}
-	console.log(data);
-	if(data[data.length -1].value.open) {
-		open_time += (new Date()).getTime()- data[data.length - 1].value.lastchange*1000;
-	} else {
-		closed_time +=  (new Date()).getTime() - data[data.length - 1].value.lastchange*1000;
+	
+	var begin = d3.min(scale_vis_x.domain()).getTime();
+	var end = d3.max(scale_vis_x.domain()).getTime();
+
+	var d = data.filter(function(x) {
+		return (x.value.lastchange * 1000 > begin && x.value.lastchange * 1000 < end);	
+	});
+
+	if(!d[0]) {
+		console.log('foo');
+		return;
 	}
 
-	svg = d3.select("span#" + placeholder)
-		.append("svg")
-		.attr("width", 300)
-		.attr("height", 150)
-	.append("g")
-		.attr("transform", "translate(150, 150)");  
+	console.log(d);
+	console.log(d[0].value.lastchange * 1000 - begin);
+	if(!d[0].value.open) {
+		open_time = d[0].value.lastchange * 1000 - begin;
+	} else {
+		close_timed = d[0].value.lastchange * 1000 - begin;
+	}
+
+	console.log("ot: " + open_time);
+	console.log("ct: " + closed_time);
+	/*
+	for(var i = 0; i < (d.length - 1); i++) {
+			timediff = d[i+1].value.lastchange*1000 - d[i].value.lastchange*1000;
+			if(d[i].value.open)
+				open_time += timediff;
+			else {
+				closed_time += timediff;
+			}
+	}
+	if(d[d.length -1].value.open) {
+		open_time += (new Date()).getTime()- d[d.length - 1].value.lastchange*1000;
+	} else {
+		closed_time +=  (new Date()).getTime() - d[d.length - 1].value.lastchange*1000;
+	}
+	*/
+	if(d[d.length -1].value.open) {
+		open_time += end - d[d.length -1].value.lastchange;
+	}
+	else {
+		closed_time += end - d[d.length -1].value.lastchange;
+	}
+	if(open_time + closed_time == 0)
+		return 0;
+
+	console.log(open_time);
+	console.log(closed_time);
+	svg = d3.select("span#placeholder_vis").select(".svgUptime").append("g")
+			.attr("transform", "translate(150, 150)");  
 
 	var pie = d3.layout.pie()
 		.sort(null)
