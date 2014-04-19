@@ -479,16 +479,12 @@ function drawUptime() {
 	}
 
 	console.log(d);
-	console.log(d[0].value.lastchange * 1000 - begin);
 	if(!d[0].value.open) {
 		open_time = d[0].value.lastchange * 1000 - begin;
 	} else {
-		close_timed = d[0].value.lastchange * 1000 - begin;
+		closed_time = d[0].value.lastchange * 1000 - begin;
 	}
 
-	console.log("ot: " + open_time);
-	console.log("ct: " + closed_time);
-	/*
 	for(var i = 0; i < (d.length - 1); i++) {
 			timediff = d[i+1].value.lastchange*1000 - d[i].value.lastchange*1000;
 			if(d[i].value.open)
@@ -498,22 +494,17 @@ function drawUptime() {
 			}
 	}
 	if(d[d.length -1].value.open) {
-		open_time += (new Date()).getTime()- d[d.length - 1].value.lastchange*1000;
-	} else {
-		closed_time +=  (new Date()).getTime() - d[d.length - 1].value.lastchange*1000;
-	}
-	*/
-	if(d[d.length -1].value.open) {
-		open_time += end - d[d.length -1].value.lastchange;
+		open_time += end - d[d.length -1].value.lastchange * 1000;
 	}
 	else {
-		closed_time += end - d[d.length -1].value.lastchange;
+		closed_time += end - d[d.length -1].value.lastchange * 1000;
 	}
 	if(open_time + closed_time == 0)
 		return 0;
 
-	console.log(open_time);
-	console.log(closed_time);
+	console.log("ot: " + open_time);
+	console.log("ct: " + closed_time);
+	d3.select("span#placeholder_vis").select(".svgUptime").select("g").remove();
 	svg = d3.select("span#placeholder_vis").select(".svgUptime").append("g")
 			.attr("transform", "translate(150, 150)");  
 
@@ -526,10 +517,11 @@ function drawUptime() {
 	var arc = d3.svg.arc()
 		.outerRadius(150 - 5)
 		.innerRadius(150 - 55)
-		
+	
+	svg.selectAll(".arc").remove();
 	var g = svg.selectAll(".arc")
-		.data(pie([{open: true, time: open_time}, {open: false, time: closed_time}]))
-		.enter().append("g")
+		.data(pie([{open: true, time: open_time}, {open: false, time: closed_time}]));
+	g.enter().append("g")
 		.attr("class", "arc");
 
 	g.append("path")
