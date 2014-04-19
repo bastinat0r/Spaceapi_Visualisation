@@ -108,13 +108,9 @@ function drawAll(spacename) {
 }
 function brushed() {
 	scale_vis_x.domain(brush.empty() ? global_scale_x.domain() : brush.extent());
-	console.log(brush.extent());
-	//console.log(brush.empty());
 	drawTimeline(10);
 	drawUptime(data, "placeholder_vis");
-	/*
 	drawBarchart(data, "placeholder_vis");
-	*/
 }
 
 function startSelect(placeholder, num_ticks){
@@ -190,8 +186,14 @@ function startSelect(placeholder, num_ticks){
 		.attr("width", 300)
 		.attr("height", 150)
 
+	d3.select("span#placeholder_vis").append("svg")
+		.attr("class", "svgBarchart")
+		.attr("height", 220)
+		.attr("width", 800)
+
 	drawTimeline(10);
 	drawUptime();
+	drawBarchart();
 
 }
 
@@ -335,9 +337,14 @@ function showSpaceInfo(spacename) {
 	});
 };
 
-function getHours(data) {
-	if(data.length < 2)
+function getHours(d) {
+	console.log(d);
+	if(d.length < 2)
 		return [];
+	var current = d.shift();
+	var begin_time = new Date(current.value.lastchange * 1000);
+	var full_hour = new Date(begin_time.getFullYear(), begin_time.getMonth(), begin_time.getDate(), begin_time.getHours() + 1);
+	var open = current.value.open;
 	var hours = [];
 	for(var i = 0; i<24; i++) {
 		hours.push({
@@ -346,6 +353,23 @@ function getHours(data) {
 			close : 0
 		});
 	}
+	while(full_hour.getTime() < d[d.length -1].value.lastchange * 1000) {
+		if(d[0].value.lastchange * 1000 < full_hour.getTime()) {
+			current = d.shift();
+			open = current.value.open;
+			
+		}
+		else{
+			if(open) {
+				hours[full_hour.getHours()].open++;
+			} else {
+				hours[full_hour.getHours()].close++;
+			}
+			full_hour = new Date(full_hour.getTime() + 60 * 60 * 1000);
+		}
+	}
+	console.log(hours);
+/*
 	var i = 0;
 	var h = new Date(data[i].value.lastchange*1000);
 	var current = data[i].value.open;
@@ -354,12 +378,12 @@ function getHours(data) {
 	h = h.getTime() + 60 * 60 * 1000;
 	var next = data[1].value.lastchange*1000;
 
-	while(h < (new Date()).getTime()) {
+	while(h < data[data.length -1].value.lastchange) {
 		if(h > next) {
 			i++;
 			current = data[i].value.open;
 			if(data[i+1] == null) {
-				next = new Date().getTime();
+				return hours;
 			} else {
 				next = data[i+1].value.lastchange*1000;
 			}
@@ -368,48 +392,74 @@ function getHours(data) {
 			h += 60 * 60 * 1000;
 		}
 	}
+*/
 	return hours;
 };
 
-function drawBarchart(data, placeholder) {
+function drawBarchart() {
 
-	var chart = d3.select("span#" + placeholder).append("svg")
-		.attr("height", 220)
-		.attr("width", 800)
+	var chart = d3.select("span#placeholder_vis").select(".svgBarchart");
+
+	var begin = d3.min(scale_vis_x.domain()).getTime();
+	var end = d3.max(scale_vis_x.domain()).getTime();
+	var d = data.filter(function(x) {
+		return (x.value.lastchange * 1000 > begin && x.value.lastchange * 1000 < end);	
+	});
+	console.log(d);
+	if(d[0]) {
+		d.unshift({id : "0", key: begin / 1000, value: {lastchange: begin / 1000, open: !d[0].value.open}});
+	}
+	if(d[0]) {
+		d.push({id : "0", key: end / 1000, value: {lastchange: end / 1000, open: !d[d.length-1].value.open}});
+	}
+
+
 
 	var x = d3.scale.linear()
 		.domain([0,23])
 		.range([100,700]);
 
+	var hours = getHours(d);
 	var bars = chart.selectAll("rect")
-		.data(getHours(data))
-		.enter().append("rect")
-		.attr("y", 220)
+		.data(hours);
+	bars.exit().remove();
+	bars.enter().append("rect");
+
+	bars.attr("y", 220)
 		.attr("x", function(d, i) {
 			return x(d.id)
 		})
 		.attr("width", 25)
-		.attr("style", "fill: #0c0")
-		.append("svg:title").text(function(d) {
-			return (d.open / (d.open + d.close) * 100).toFixed(2) + "%";
-		})
-	chart.selectAll("rect").transition().duration(1000)
 		.attr("height", function(d) {
+			if(d.open + d.close == 0) {
+				return 0;
+			}
 			return 200 * d.open / (d.open + d.close);
 		})
 		.attr("y", function(d) {
+			if(d.open + d.close == 0) {
+				return 0;
+			}
 			return 220 - 200 * d.open / (d.open + d.close);
 		})
+		.attr("style", "fill: #0c0")
+		.append("svg:title").text(function(d) {
+			if(d.open + d.close == 0) {
+				return 0;
+			}
+			return (d.open / (d.open + d.close) * 100).toFixed(2) + "%";
+		})
 		
+	chart.selectAll("text").remove();
 	chart.selectAll("text")
-		.data(getHours(data))
+		.data(d3.range(24))
 		.enter().append("text")
-		.attr("x", function (d, i) {
-			return x(d.id) + 12;
+		.attr("x", function (d) {
+			return x(d) + 12;
 		})
 		.attr("y", 215)
 		.style("text-anchor", "middle")
-		.text(function(d) {return d.id;});
+		.text(function(d) {return d});
 }
 
 function drawTimeline(num_ticks) {
@@ -474,11 +524,9 @@ function drawUptime() {
 	});
 
 	if(!d[0]) {
-		console.log('foo');
 		return;
 	}
 
-	console.log(d);
 	if(!d[0].value.open) {
 		open_time = d[0].value.lastchange * 1000 - begin;
 	} else {
@@ -502,8 +550,6 @@ function drawUptime() {
 	if(open_time + closed_time == 0)
 		return 0;
 
-	console.log("ot: " + open_time);
-	console.log("ct: " + closed_time);
 	d3.select("span#placeholder_vis").select(".svgUptime").select("g").remove();
 	svg = d3.select("span#placeholder_vis").select(".svgUptime").append("g")
 			.attr("transform", "translate(150, 150)");  
