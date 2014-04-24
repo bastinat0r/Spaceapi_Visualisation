@@ -116,7 +116,7 @@ function brushed() {
 function startSelect(placeholder, num_ticks){
 	
 	var chart = d3.select("span#" + placeholder).append("svg")
-		.attr("height", 70)
+		.attr("height", 90)
 		.attr("width", width)
 	var tl = chart.append('g')
 		.attr("class", "timeline")
@@ -125,7 +125,7 @@ function startSelect(placeholder, num_ticks){
 		.data(data)
 		.enter().append("rect")
 		.attr("class", "bars")
-		.attr("y", 20)
+		.attr("y", 40)
 		.attr("x", function(d, i) {
 			return global_scale_x(new Date(d.value.lastchange*1000))
 		})
@@ -149,8 +149,8 @@ function startSelect(placeholder, num_ticks){
 		.enter().append("line")
 		.attr("x1", global_scale_x)
 		.attr("x2", global_scale_x)
-		.attr("y1", 14)
-		.attr("y2", 50)
+		.attr("y1", 34)
+		.attr("y2", 70)
 		.attr("style", "stroke: #ccc");
 
 	tl.selectAll(".rule")
@@ -158,7 +158,7 @@ function startSelect(placeholder, num_ticks){
 		.enter().append("text")
 		.attr("class", "rule")
 		.attr("x", global_scale_x)
-		.attr("y", 12)
+		.attr("y", 32)
 		.attr("text-anchor", "middle")
 		.text(function(d) {
 			x = new Date(d)
@@ -169,10 +169,10 @@ function startSelect(placeholder, num_ticks){
 		.attr("class", "brush")
 		.call(brush);
 	b.selectAll('rect')
-		.attr('height', 35)
-		.attr('y', 20);
+		.attr('height', 42)
+		.attr('y', 35);
 
-	brush.extent([new Date(onemonth * 1000), new Date(now * 1000)]);
+	brush.extent([new Date(onemonth * 1000), new Date()]);
 	brush(b);
 	brush.on('brush', brushed);
 
@@ -421,7 +421,8 @@ function drawBarchart() {
 	bars.exit().remove();
 	bars.enter().append("rect");
 
-	bars.attr("y", 220)
+	bars.transition().duration(100)
+		.attr("y", 220)
 		.attr("x", function(d, i) {
 			return x(d.id)
 		})
