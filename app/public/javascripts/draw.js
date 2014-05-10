@@ -68,7 +68,6 @@ function drawAll(spacename) {
 		else {
 			data = res.rows;
 			if(data[0]) {
-				data.unshift({id : "0", key: oneyear, value: {lastchange: oneyear, open: false}})
 				d3.select("div#rowSelect")
 					.style("display", "inline");
 				data = res.rows.sort(function(a,b) {
