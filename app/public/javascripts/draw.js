@@ -171,7 +171,8 @@ function startSelect(placeholder, num_ticks){
 		.attr('height', 42)
 		.attr('y', 35);
 
-	brush.extent([new Date(onemonth * 1000), new Date()]);
+	var brush_begin = Math.max(onemonth * 1000, d3.min(global_scale_x.domain()));
+	brush.extent([new Date(brush_begin), new Date()]);
 	brush(b);
 	brush.on('brush', brushed);
 
