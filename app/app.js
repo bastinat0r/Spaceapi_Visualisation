@@ -14,6 +14,7 @@ var app = express();
 
 // all environments
 app.set('port', process.env.PORT || 3000);
+app.set('bind_addr', process.env.ADDR || '0.0.0.0');
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
 app.use(express.favicon());
@@ -110,6 +111,6 @@ app.get(/^\/current/, function(req, srvRes) {
 	}
 });
 
-http.createServer(app).listen(app.get('port'), function(){
+http.createServer(app).listen(app.get('port'), app.get('bind_addr'), function(){
   console.log('Express server listening on port ' + app.get('port'));
-}, "0.0.0.0");
+});
