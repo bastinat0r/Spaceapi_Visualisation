@@ -61,6 +61,7 @@ app.get(/_design/, function(req, res) {
 			data = data + chunk;
 		});
 		dbRes.on('end', function() {
+			data = data + "\n";
 			headers = {
 				'content-length' : data.length,
 				'content-type' : 'application/json'
