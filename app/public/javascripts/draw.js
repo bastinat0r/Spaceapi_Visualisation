@@ -440,7 +440,7 @@ function drawBarchart() {
 			return 220 - 200 * d.open / (d.open + d.close);
 		})
 		.attr("style", "fill: #0c0");
-	bars.selectAll("rect").remove();
+	bars.selectAll("svg:title").remove();
 	bars.append("svg:title").text(function(d) {
 			if(d.open + d.close == 0) {
 				return 0;
