@@ -64,11 +64,11 @@ app.get(/_design/, function(req, res) {
 		dbRes.on('end', function() {
 			data = data + "\n";
 			headers = {
-				'content-length' : data.length,
 				'content-type' : 'application/json'
 			}
 			res.writeHead(dbRes.statusCode, headers);
-			res.end(data);
+			res.write(data);
+			res.end();
 		});
 	}).end();
 
