@@ -3,7 +3,7 @@ var util = require('util');
 var couch = require('./couch.js');
 
 var spaces = {};
-http.get('http://spaceapi.net/directory.json', function(res) {
+http.get('http://spaceapi.fixme.ch/directory.json', function(res) {
 	var data = "";
 	res.on('data', function(chunk) {
 		data = data + chunk;
