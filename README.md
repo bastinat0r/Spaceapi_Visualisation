@@ -11,3 +11,4 @@ couchdb up and running
 
 Most of the stuff is done in app/public/javascripts/draw.js if you want to change something in the frontend it is propably the right place for that.
 
+# Open for adoption
